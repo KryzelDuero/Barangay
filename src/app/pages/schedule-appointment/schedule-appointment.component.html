@@ -19,13 +19,18 @@
           </div>
           <div class="form-group">
             <label>Contact Number *</label>
-            <input type="tel" formControlName="guardianContact" placeholder="e.g. +63 912 345 6789">
-            <span class="error" *ngIf="isSubmitted && appointmentForm.get('guardianContact')?.invalid">Contact is
+            <input type="tel" formControlName="guardianContact" placeholder="" maxlength="11"
+              (keypress)="allowOnlyNumbers($event)">
+            <span class="error"
+              *ngIf="isSubmitted && appointmentForm.get('guardianContact')?.hasError('required')">Contact is
               required</span>
+            <span class="error"
+              *ngIf="isSubmitted && appointmentForm.get('guardianContact')?.hasError('pattern')">Number must be exactly
+              11 digits</span>
           </div>
           <div class="form-group">
             <label>Email Address *</label>
-            <input type="email" formControlName="guardianEmail" placeholder="user@example.com">
+            <input type="email" formControlName="guardianEmail" placeholder="">
             <span class="error" *ngIf="isSubmitted && appointmentForm.get('guardianEmail')?.invalid">Valid email is
               required</span>
           </div>
@@ -54,9 +59,9 @@
               required</span>
           </div>
           <div class="form-group">
-            <label>Date of Birth *</label>
-            <input type="date" formControlName="babyDob" title="Very important for vaccine schedule">
-            <span class="error" *ngIf="isSubmitted && appointmentForm.get('babyDob')?.invalid">Date of birth is
+            <label>Age *</label>
+            <input type="text" formControlName="babyAge" placeholder="e.g. 6 months">
+            <span class="error" *ngIf="isSubmitted && appointmentForm.get('babyAge')?.invalid">Age is
               required</span>
           </div>
           <div class="form-group">
@@ -70,7 +75,7 @@
           </div>
           <div class="form-group">
             <label>Birth Weight (kg)</label>
-            <input type="number" step="0.1" formControlName="birthWeight" placeholder="e.g. 3.2">
+            <input type="number" step="0.1" formControlName="birthWeight" placeholder="">
           </div>
         </div>
       </section>
@@ -79,49 +84,18 @@
       <section class="form-section">
         <h3><span class="icon">💉</span> Immunization Details</h3>
         <div class="form-grid">
-          <div class="form-group full-width">
-            <label>Vaccines Already Received</label>
-            <textarea formControlName="vaccinesReceived" rows="2"
-              placeholder="List vaccines and dates if possible"></textarea>
-          </div>
           <div class="form-group">
-            <label>Vaccine Being Requested</label>
-            <input type="text" formControlName="vaccineRequested" placeholder="e.g. BCG, Hepatitis B">
+            <label>Vaccines Already Received</label>
+            <input type="text" formControlName="vaccinesReceived" placeholder="List vaccines and dates if possible">
           </div>
           <div class="form-group">
             <label>Immunization Record Number</label>
-            <input type="text" formControlName="immunizationRecordNumber" placeholder="If available">
+            <input type="text" formControlName="immunizationRecordNumber" placeholder="If available" (keypress)="allowOnlyNumbers($event)">
           </div>
         </div>
       </section>
 
-      <!-- Appointment Preferences -->
-      <section class="form-section">
-        <h3><span class="icon">📅</span> Appointment Preferences</h3>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Preferred Date *</label>
-            <input type="date" formControlName="preferredDate">
-            <span class="error" *ngIf="isSubmitted && appointmentForm.get('preferredDate')?.invalid">Date is
-              required</span>
-          </div>
-          <div class="form-group">
-            <label>Preferred Time *</label>
-            <input type="time" formControlName="preferredTime">
-            <span class="error" *ngIf="isSubmitted && appointmentForm.get('preferredTime')?.invalid">Time is
-              required</span>
-          </div>
-          <div class="form-group full-width">
-            <label>Preferred Clinic/Location *</label>
-            <select formControlName="preferredClinic">
-              <option value="" disabled>Select clinic branch</option>
-              <option value="Katipunan Clinic">Katipunan Clinic</option>
-            </select>
-            <span class="error" *ngIf="isSubmitted && appointmentForm.get('preferredClinic')?.invalid">Clinic location
-              is required</span>
-          </div>
-        </div>
-      </section>
+
 
       <!-- Health Information -->
       <section class="form-section highlighted-section">

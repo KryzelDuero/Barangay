@@ -13,21 +13,23 @@
   <!-- Main content stack -->
   <div class="page-content">
     <!-- Top Filter Bar -->
-    <section class="action-hub horizontal">
-      <div class="action-grid row">
-        <div class="filter-card flex-grow">
-          <label>Search Patients</label>
-          <input type="text" class="search-input" placeholder="Search name..." [(ngModel)]="searchTerm"
-            (ngModelChange)="onSearch($event)">
-        </div>
+    <section class="action-hub" style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <div class="filter-card">
+        <label>Search Patients</label>
+        <input type="text" class="search-input" placeholder="Search name..." [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearch($event)">
+      </div>
+      <div class="filter-pills-container" style="display: inline-flex; align-items: center; justify-content: flex-start; gap: 0.5rem; background: white; border-radius: 30px; padding: 0.5rem; box-shadow: var(--shadow-sm); width: max-content;">
+        <button class="pill-btn" [class.active]="viewFilter === 'pending'" (click)="onViewFilterChange('pending')">Pending Appointments</button>
+        <button class="pill-btn" [class.active]="viewFilter === 'history'" (click)="onViewFilterChange('history')">Appointments History</button>
       </div>
     </section>
 
     <!-- Table Section -->
     <section class="activity-section">
       <div class="section-header">
-        <h2>In-Review Requests</h2>
-        <span class="badge" *ngIf="(filteredAppointments$ | async)?.length as count">{{ count }} pending found</span>
+        <h2>{{ viewFilter === 'pending' ? 'In-Review Requests' : 'Appointments History' }}</h2>
+        <span class="badge" *ngIf="(filteredAppointments$ | async)?.length as count">{{ count }} {{ viewFilter === 'pending' ? 'pending' : 'historical' }} found</span>
       </div>
 
       <div class="table-container card">
@@ -39,41 +41,34 @@
         <table *ngIf="(filteredAppointments$ | async)?.length">
           <thead>
             <tr>
-              <th>Guardian / Baby Name</th>
-              <th>Contact & Email</th>
-              <th>Vaccine Requested</th>
-              <th>Preferred Date/Time</th>
-              <th>Clinic</th>
-              <th>Actions</th>
+              <th>Guardian Name</th>
+              <th>Baby Name</th>
+              <th>Contact Number</th>
+              <th>Email</th>
+              <th *ngIf="viewFilter === 'pending'">Actions</th>
+              <th *ngIf="viewFilter === 'history'">Status</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let app of filteredAppointments$ | async">
-              <td>
-                <div class="name-info">
-                  <strong>{{ app.guardianName }}</strong>
-                  <span>👶 {{ app.babyName }}</span>
-                </div>
-              </td>
-              <td>
-                <div class="contact-info">
-                  {{ app.guardianContact }}
-                  <small>{{ app.guardianEmail }}</small>
-                </div>
-              </td>
-              <td><span class="badge">{{ app.vaccineRequested }}</span></td>
-              <td>
-                <div class="time-info">
-                  {{ app.preferredDate | date:'mediumDate' }}
-                  <small>{{ app.preferredTime }}</small>
-                </div>
-              </td>
-              <td>{{ app.preferredClinic }}</td>
-              <td>
+              <td class="guardian-name"><strong>{{ app.guardianName }}</strong></td>
+              <td class="baby-name">{{ app.babyName }}</td>
+              <td class="contact-num">{{ app.guardianContact }}</td>
+              <td class="email-info">{{ app.guardianEmail }}</td>
+              <td *ngIf="viewFilter === 'pending'">
                 <div class="action-buttons">
-                  <button class="approve-btn" (click)="onApprove(app.id)" title="Approve">✔️</button>
-                  <button class="reject-btn" (click)="onReject(app.id)" title="Reject">❌</button>
+                  <button class="approve-btn" (click)="onApprove(app.id)">
+                    <span class="icon">✔️</span> Approve
+                  </button>
+                  <button class="reject-btn" (click)="onReject(app.id)">
+                    <span class="icon">❌</span> Reject
+                  </button>
                 </div>
+              </td>
+              <td *ngIf="viewFilter === 'history'">
+                <span class="status-badge" [ngClass]="app.status === 'Rejected' ? 'rejected' : 'approved'">
+                  {{ app.status === 'Rejected' ? 'Rejected' : 'Approved' }}
+                </span>
               </td>
             </tr>
           </tbody>

@@ -144,6 +144,27 @@
   text-transform: uppercase;
 }
 
+.pill-btn {
+  padding: 0.6rem 1.5rem;
+  border-radius: 20px;
+  border: none;
+  background-color: transparent;
+  color: #0c3c4a;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+.pill-btn:hover {
+  background-color: #f0f8ff;
+}
+
+.pill-btn.active {
+  background-color: var(--primary-teal, #008394);
+  color: white;
+}
+
 
 .search-input {
   padding: 0.8rem;
@@ -189,30 +210,54 @@ td {
   font-size: 0.85rem;
 }
 
+/* Status Badge Styles */
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.status-badge.approved { background-color: #e8f5e9; color: #2e7d32; }
+.status-badge.rejected { background-color: #ffebee; color: #c62828; }
+.status-badge.pending { background-color: #fff3e0; color: #ef6c00; }
+
+
 .action-buttons {
   display: flex;
   gap: 0.5rem;
 }
 
-.approve-btn, .reject-btn, .delete-btn {
-  width: 36px;
-  height: 36px;
+.action-buttons {
   display: flex;
+  gap: 1rem;
   align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 1.1rem;
-  transition: transform 0.2s;
 }
 
-.approve-btn { background-color: #4caf50; color: white; }
-.reject-btn { background-color: #f44336; color: white; }
-.delete-btn { background-color: #9e9e9e; color: white; }
+.approve-btn, .reject-btn {
+  background: none;
+  border: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
 
-.approve-btn:hover, .reject-btn:hover, .delete-btn:hover {
-  transform: scale(1.1);
+.approve-btn { color: #15803d; }
+.approve-btn:hover { background-color: #f0fdf4; }
+
+.reject-btn { color: #ef4444; }
+.reject-btn:hover { background-color: #fef2f2; }
+
+.approve-btn .icon, .reject-btn .icon {
+  font-size: 1rem;
 }
 
 @media (max-width: 1100px) {

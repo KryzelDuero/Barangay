@@ -28,7 +28,7 @@
         <h3>Total Approved</h3>
         <p class="stat-value">{{ approvedCount$ | async }}</p>
       </div>
-      <a routerLink="/manage-appointment" class="stat-link">View records →</a>
+      <a routerLink="/pending-appointment" [queryParams]="{view: 'history'}" class="stat-link">View records →</a>
     </div>
 
     <div class="stat-card rejected">
@@ -37,7 +37,7 @@
         <h3>Total Rejected</h3>
         <p class="stat-value">{{ rejectedCount$ | async }}</p>
       </div>
-      <a routerLink="/manage-appointment" class="stat-link">View history →</a>
+      <a routerLink="/pending-appointment" [queryParams]="{view: 'history'}" class="stat-link">View history →</a>
     </div>
 
     <div class="stat-card total">
@@ -70,8 +70,8 @@
     <!-- Recent Activity Table -->
     <section class="activity-section">
       <div class="section-header">
-        <h2>Recent Immunization Logs</h2>
-        <button class="view-all">View All logs</button>
+        <h2>Recent Immunization Records</h2>
+        <button class="view-all" routerLink="/immunization-records">View All Records</button>
       </div>
       <div class="table-container card">
         <table>
@@ -85,12 +85,16 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let row of chartData">
-              <td><strong>{{ row.name }}</strong></td>
-              <td>{{ row.age }} / {{ row.sex }}</td>
-              <td><span class="badge">{{ row.vaccine }}</span></td>
-              <td>{{ row.date }}</td>
-              <td><span class="status-pill active">{{ row.remarks }}</span></td>
+            <tr *ngFor="let record of recentRecords$ | async">
+              <td><strong>{{ record.babyName }}</strong></td>
+              <td>{{ record.babyAge }} / {{ record.babySex }}</td>
+              <td><span class="badge">{{ record.vaccineRequested }}</span></td>
+              <td>{{ record.preferredDate | date:'longDate' }}</td>
+              <td>
+                <span class="status-pill" [ngClass]="getStatusClass(record.status)">
+                  {{ record.status }}
+                </span>
+              </td>
             </tr>
           </tbody>
         </table>

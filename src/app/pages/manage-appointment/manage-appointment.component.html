@@ -27,6 +27,9 @@
           <select class="status-select" [(ngModel)]="statusFilter" (ngModelChange)="onStatusChange($event)">
             <option value="All">All Status</option>
             <option value="Pending">Pending</option>
+            <option value="First dose">First dose</option>
+            <option value="Second dose">Second dose</option>
+            <option value="Completed">Completed</option>
           </select>
         </div>
       </div>
@@ -48,9 +51,10 @@
         <table *ngIf="(filteredAppointments$ | async)?.length">
           <thead>
             <tr>
-              <th>Guardian / Baby Name</th>
+              <th>Baby Name</th>
               <th>Vaccine</th>
               <th>Clinic</th>
+              <th>Nurse Assigned</th>
               <th>Status</th>
               <th>Processed Date</th>
               <th>Actions</th>
@@ -58,28 +62,28 @@
           </thead>
           <tbody>
             <tr *ngFor="let app of filteredAppointments$ | async">
-              <td>
-                <div class="name-info">
-                  <strong>{{ app.guardianName }}</strong>
-                  <span>👶 {{ app.babyName }}</span>
-                </div>
-              </td>
+              <td><strong>{{ app.babyName }}</strong></td>
               <td><span class="badge">{{ app.vaccineRequested }}</span></td>
               <td>{{ app.preferredClinic }}</td>
+              <td>{{ app.nurseAssigned || 'Unassigned' }}</td>
               <td>
-                <span class="status-pill" [class.pending]="app.status === 'Pending'"
-                  [class.approved]="app.status === 'Approved'" [class.rejected]="app.status === 'Rejected'">
-                  {{ app.status }}
-                </span>
+                <select class="status-pill status-select-inline" [ngClass]="getStatusClass(app.status)"
+                  [ngModel]="app.status" (change)="onStatusUpdate(app.id, $event)">
+                  <option value="Pending">Pending</option>
+                  <option value="First dose">First dose</option>
+                  <option value="Second dose">Second dose</option>
+                  <option value="Completed">Completed</option>
+                </select>
               </td>
               <td>{{ app.preferredDate | date:'shortDate' }}</td>
               <td class="action-cell">
                 <div class="table-actions">
-                  <button *ngIf="app.status === 'Pending'" class="mini-btn approve" (click)="onApprove(app.id)"
-                    title="Approve">✔️</button>
-                  <button *ngIf="app.status === 'Pending'" class="mini-btn reject" (click)="onReject(app.id)"
-                    title="Reject">❌</button>
-                  <button class="mini-btn delete" (click)="onDelete(app.id)" title="Delete Record">🗑️</button>
+                  <button class="edit-btn" (click)="onEdit(app.id)">
+                    <span class="icon">✏️</span> Edit
+                  </button>
+                  <button class="delete-btn" (click)="onDelete(app.id)">
+                    <span class="icon">🗑️</span> Delete
+                  </button>
                 </div>
               </td>
             </tr>
@@ -87,5 +91,138 @@
         </table>
       </div>
     </section>
+  </div>
+</div>
+
+<!-- Edit Appointment Modal -->
+<div class="modal-overlay fade-in" *ngIf="isEditModalOpen" (click)="closeEditModal()">
+  <div class="modal-content card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Edit <span class="highlight">Appointment</span></h2>
+      <button class="close-btn" (click)="closeEditModal()">✖</button>
+    </div>
+
+    <div class="modal-body" *ngIf="selectedAppointment">
+      <form class="edit-form">
+        <!-- Guardian Info -->
+        <h3 class="section-title">Parent/Guardian Information</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" [(ngModel)]="selectedAppointment.guardianName" name="gName" disabled>
+          </div>
+          <div class="form-group">
+            <label>Contact Number</label>
+            <input type="text" [(ngModel)]="selectedAppointment.guardianContact" name="gContact" disabled>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" [(ngModel)]="selectedAppointment.guardianEmail" name="gEmail" disabled>
+          </div>
+          <div class="form-group">
+            <label>Relationship</label>
+            <select [(ngModel)]="selectedAppointment.relationship" name="gRel" disabled>
+              <option value="Mother">Mother</option>
+              <option value="Father">Father</option>
+              <option value="Guardian">Guardian</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Baby Info -->
+        <h3 class="section-title">Baby's Information</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Baby Name</label>
+            <input type="text" [(ngModel)]="selectedAppointment.babyName" name="bName" disabled>
+          </div>
+          <div class="form-group">
+            <label>Age</label>
+            <input type="text" [(ngModel)]="selectedAppointment.babyAge" name="bAge" disabled>
+          </div>
+          <div class="form-group">
+            <label>Sex</label>
+            <select [(ngModel)]="selectedAppointment.babySex" name="bSex" disabled>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Birth Weight (kg)</label>
+            <input type="number" [(ngModel)]="selectedAppointment.birthWeight" name="bWeight" disabled>
+          </div>
+        </div>
+
+        <!-- Immunization Details -->
+        <h3 class="section-title">💉 Immunization Details</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Vaccine Being Requested</label>
+            <input type="text" [(ngModel)]="selectedAppointment.vaccineRequested" name="vaccineReq">
+          </div>
+          <div class="form-group">
+            <label>Vaccines Already Received</label>
+            <input type="text" [(ngModel)]="selectedAppointment.vaccinesReceived" name="vaccinesReceived" disabled>
+          </div>
+          <div class="form-group">
+            <label>Immunization Record Number</label>
+            <input type="text" [(ngModel)]="selectedAppointment.immunizationRecordNumber" name="immRecNum"
+              (keypress)="allowOnlyNumbers($event)" disabled>
+          </div>
+          <div class="form-group">
+            <label>Nurse Assigned</label>
+            <input type="text" [(ngModel)]="selectedAppointment.nurseAssigned" name="nurseAssigned" placeholder="">
+          </div>
+        </div>
+
+        <!-- Appointment Preferences -->
+        <h3 class="section-title">Appointment Preferences</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Preferred Date</label>
+            <input type="date" [(ngModel)]="selectedAppointment.preferredDate" name="prefDate">
+          </div>
+          <div class="form-group">
+            <label>Preferred Time</label>
+            <input type="time" [(ngModel)]="selectedAppointment.preferredTime" name="prefTime">
+          </div>
+          <div class="form-group">
+            <label>Preferred Clinic</label>
+            <select [(ngModel)]="selectedAppointment.preferredClinic" name="clinic">
+              <option value="Katipunan Clinic">Katipunan Clinic</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Health Information -->
+        <h3 class="section-title">Health Information</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Known Allergies</label>
+            <input type="text" [(ngModel)]="selectedAppointment.allergies" name="allergies" disabled>
+          </div>
+          <div class="form-group">
+            <label>Existing Medical Conditions</label>
+            <input type="text" [(ngModel)]="selectedAppointment.medicalConditions" name="medConditions" disabled>
+          </div>
+          <div class="form-group">
+            <label>Recent Illness or Fever</label>
+            <input type="text" [(ngModel)]="selectedAppointment.recentIllness" name="recentIllness" disabled>
+          </div>
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" [(ngModel)]="selectedAppointment.prematureBirth" name="prematureBirth"
+                style="width: auto;" disabled>
+              <span>Premature birth history</span>
+            </label>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn secondary" (click)="closeEditModal()">Cancel</button>
+      <button class="btn primary" (click)="saveEdit()">Save Changes</button>
+    </div>
   </div>
 </div>

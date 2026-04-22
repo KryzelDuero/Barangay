@@ -22,19 +22,15 @@ export class ScheduleAppointmentComponent {
   ) {
     this.appointmentForm = this.fb.group({
       guardianName: ['', Validators.required],
-      guardianContact: ['', Validators.required],
+      guardianContact: ['', [Validators.required, Validators.pattern(/^[0-9]{11}$/)]],
       guardianEmail: ['', [Validators.required, Validators.email]],
       relationship: ['', Validators.required],
       babyName: ['', Validators.required],
-      babyDob: ['', Validators.required],
+      babyAge: ['', Validators.required],
       babySex: ['', Validators.required],
       birthWeight: [''],
       vaccinesReceived: [''],
-      vaccineRequested: [''],
       immunizationRecordNumber: [''],
-      preferredDate: ['', Validators.required],
-      preferredTime: ['', Validators.required],
-      preferredClinic: ['', Validators.required],
       allergies: [''],
       medicalConditions: [''],
       recentIllness: [''],
@@ -42,10 +38,24 @@ export class ScheduleAppointmentComponent {
     });
   }
 
+  allowOnlyNumbers(event: KeyboardEvent) {
+    const charCode = event.which ? event.which : event.keyCode;
+    // Allow only numbers (48-57)
+    if (charCode < 48 || charCode > 57) {
+      event.preventDefault();
+    }
+  }
+
   onSubmit() {
     this.isSubmitted = true;
     if (this.appointmentForm.valid) {
-      this.appointmentService.addAppointment(this.appointmentForm.value);
+      const formValue = {
+        ...this.appointmentForm.value,
+        preferredDate: '',
+        preferredTime: '',
+        preferredClinic: ''
+      };
+      this.appointmentService.addAppointment(formValue);
       alert('Appointment request submitted successfully! It is now pending for assessment.');
       this.appointmentForm.reset();
       this.isSubmitted = false;

@@ -23,6 +23,12 @@
         </a>
       </li>
       <li>
+        <a routerLink="/immunization-records" routerLinkActive="active" class="nav-item">
+          <span class="icon">📒</span>
+          <span class="label" *ngIf="!(isCollapsed$ | async)">Immunization Records</span>
+        </a>
+      </li>
+      <li>
         <a routerLink="/manage-appointment" routerLinkActive="active" class="nav-item">
           <span class="icon">📁</span>
           <span class="label" *ngIf="!(isCollapsed$ | async)">Manage Appointments</span>
@@ -32,6 +38,12 @@
         <a routerLink="/pending-appointment" routerLinkActive="active" class="nav-item">
           <span class="icon">📋</span>
           <span class="label" *ngIf="!(isCollapsed$ | async)">Pending Appointments</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/sms-notification" routerLinkActive="active" class="nav-item">
+          <span class="icon">💬</span>
+          <span class="label" *ngIf="!(isCollapsed$ | async)">SMS Notification</span>
         </a>
       </li>
     </ul>

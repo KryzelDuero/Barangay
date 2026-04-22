@@ -28,7 +28,7 @@ export class ManageAppointmentComponent implements OnInit {
       this.statusSubject.asObservable().pipe(startWith('All'))
     ]).pipe(
       map(([apps, search, status]) => {
-        let filtered = apps.filter(a => a.reviewed);
+        let filtered = apps.filter(a => a.reviewed && a.status !== 'Rejected' && !a.archived && a.status !== 'Completed');
         
         // Status Filter
         if (status !== 'All') {
@@ -60,24 +60,54 @@ export class ManageAppointmentComponent implements OnInit {
   ngOnInit(): void {}
 
   getStatusClass(status: string): string {
-    return status.toLowerCase();
+    return status.toLowerCase().replace(' ', '-');
   }
 
-  onApprove(id: string) {
-    if (confirm('Approve this appointment?')) {
-      this.appointmentService.updateAppointmentStatus(id, 'Approved');
+  onStatusUpdate(id: string, event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.appointmentService.updateAppointmentStatus(id, select.value as any);
+  }
+
+
+
+  allowOnlyNumbers(event: KeyboardEvent) {
+    const charCode = event.which ? event.which : event.keyCode;
+    // Allow only numbers (48-57)
+    if (charCode < 48 || charCode > 57) {
+      event.preventDefault();
     }
   }
 
-  onReject(id: string) {
-    if (confirm('Reject this appointment?')) {
-      this.appointmentService.updateAppointmentStatus(id, 'Rejected');
+  isEditModalOpen = false;
+  selectedAppointment: Appointment | null = null;
+
+  onEdit(id: string) {
+    // Find the exact appointment by ID from local storage (or service)
+    this.appointmentService.getAppointments().subscribe(apps => {
+      const found = apps.find(a => a.id === id);
+      if (found) {
+        // Create a copy to edit without mutating the original list immediately
+        this.selectedAppointment = { ...found };
+        this.isEditModalOpen = true;
+      }
+    }).unsubscribe(); // Immediately unsubscribe after getting current value since BehaviorSubject is synchronous
+  }
+
+  closeEditModal() {
+    this.isEditModalOpen = false;
+    this.selectedAppointment = null;
+  }
+
+  saveEdit() {
+    if (this.selectedAppointment) {
+      this.appointmentService.updateAppointmentDetails(this.selectedAppointment.id, this.selectedAppointment);
+      this.closeEditModal();
     }
   }
 
   onDelete(id: string) {
-    if (confirm('Are you sure you want to permanently delete this record?')) {
-      this.appointmentService.deleteAppointment(id);
+    if (confirm('Are you sure you want to remove this record from management? It will still be available in history.')) {
+      this.appointmentService.archiveFromManagement(id);
     }
   }
 }

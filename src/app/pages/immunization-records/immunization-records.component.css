@@ -1,0 +1,191 @@
+.dashboard-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  background-color: #f8fbff;
+  min-height: calc(100vh - 93px);
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+}
+
+.welcome-text h1 {
+  font-size: 2.2rem;
+  color: #0c3c4a;
+  margin-bottom: 0.5rem;
+}
+
+.welcome-text .highlight {
+  color: var(--primary-teal);
+}
+
+.welcome-text p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.current-date {
+  background: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 30px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-weight: 500;
+  color: var(--secondary-teal);
+}
+
+.page-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Filter Card */
+.filter-card {
+  background: white;
+  border: 1px solid #eee;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  flex: 1;
+}
+
+.filter-card label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.search-input {
+  padding: 0.8rem 1rem;
+  border: 1px solid #e0e6ed;
+  border-radius: 10px;
+  font-size: 1rem;
+  width: 100%;
+  transition: border-color 0.3s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-teal);
+}
+
+/* Table Section */
+.activity-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.activity-section h2 {
+  font-size: 1.5rem;
+  color: var(--dark);
+}
+
+.badge {
+  background: #e0f2f1;
+  color: #00695c;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f0f3f8;
+  overflow: hidden;
+}
+
+/* Table Styling - Matching Image 1 */
+.records-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.records-table th {
+  text-align: left;
+  padding: 1.2rem 1.5rem;
+  background-color: #fbfcfd;
+  color: #5b6e7f;
+  font-weight: 700;
+  font-size: 1rem;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.records-table td {
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid #f1f4f8;
+  vertical-align: middle;
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.patient-name {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.age-sex {
+  color: #64748b;
+}
+
+.record-date {
+  color: #64748b;
+}
+
+/* Vaccine Pill - Matching Image 1 blue pill */
+.vaccine-pill {
+  background-color: #e0f7ff;
+  color: #0096cc;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* Status Labels - Matching Image 1 colored text */
+.status-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.status-label.completed { color: #2e7d32; }
+.status-label.first-dose { color: #1976d2; }
+.status-label.second-dose { color: #7b1fa2; }
+.status-label.pending { color: #ef6c00; }
+
+.empty-state {
+  padding: 4rem;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.empty-state .icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}

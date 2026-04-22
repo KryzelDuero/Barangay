@@ -36,5 +36,15 @@ export const routes: Routes = [
     path: 'pending-appointment',
     loadComponent: () => import('./pages/pending-appointment/pending-appointment.component').then(m => m.PendingAppointmentComponent)
   },
+  {
+    path: 'immunization-records',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/immunization-records/immunization-records.component').then(m => m.ImmunizationRecordsComponent)
+  },
+  {
+    path: 'sms-notification',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/sms-notification/sms-notification.component').then(m => m.SmsNotificationComponent)
+  },
   { path: '**', redirectTo: '' }
 ];

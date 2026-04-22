@@ -1,0 +1,70 @@
+<div class="dashboard-container fade-in">
+  <!-- Header section -->
+  <header class="dashboard-header">
+    <div class="welcome-text">
+      <h1>Immunization <span class="highlight">Records</span></h1>
+      <p>Official database of all processed immunization history and status.</p>
+    </div>
+    <div class="current-date">
+      <span class="icon">📅</span>
+      <span>{{ today | date:'fullDate' }}</span>
+    </div>
+  </header>
+
+  <!-- Main content stack -->
+  <div class="page-content">
+    <!-- Top Search Bar -->
+    <section class="action-hub horizontal">
+      <div class="action-grid row">
+        <div class="filter-card flex-grow">
+          <label>Search Records</label>
+          <input type="text" class="search-input" placeholder="Search patient name..." [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearch($event)">
+        </div>
+        <!-- Filter removed as requested -->
+      </div>
+    </section>
+
+    <!-- Records Table -->
+    <section class="activity-section">
+      <div class="section-header">
+        <h2>Patient Records</h2>
+        <span class="badge" *ngIf="(filteredRecords$ | async)?.length as count">{{ count }} records found</span>
+      </div>
+
+      <div class="table-container card">
+        <div *ngIf="!(filteredRecords$ | async)?.length" class="empty-state">
+          <div class="icon">📒</div>
+          <p>No immunization records found.</p>
+        </div>
+
+        <table *ngIf="(filteredRecords$ | async)?.length" class="records-table">
+          <thead>
+            <tr>
+              <th>Patient Name</th>
+              <th>Age/Sex</th>
+              <th>Vaccine Issued</th>
+              <th>Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let record of filteredRecords$ | async">
+              <td class="patient-name">{{ record.babyName }}</td>
+              <td class="age-sex">{{ record.babyAge }} / {{ record.babySex }}</td>
+              <td>
+                <span class="vaccine-pill">{{ record.vaccineRequested }}</span>
+              </td>
+              <td class="record-date">{{ record.preferredDate | date:'longDate' }}</td>
+              <td>
+                <span class="status-label" [ngClass]="getStatusClass(record.status)">
+                  {{ record.status }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>

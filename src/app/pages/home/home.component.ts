@@ -1,24 +1,14 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { AppointmentService, Appointment } from '../../services/appointment.service';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-interface ChartRow {
-  id: number;
-  name: string;
-  age: string;
-  sex: string;
-  vaccine: string;
-  date: string;
-  worker: string;
-  remarks: string;
-}
-
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
@@ -27,28 +17,36 @@ export class HomeComponent {
   approvedCount$: Observable<number>;
   rejectedCount$: Observable<number>;
   totalCount$: Observable<number>;
+  recentRecords$: Observable<Appointment[]>;
   today: Date = new Date();
 
-  chartData: ChartRow[] = [
-    { id: 1, name: 'Juan Dela Cruz', age: '6 months', sex: 'Male', vaccine: 'Pentavalent', date: 'April 15, 2026', worker: 'BHW Maria Santos', remarks: 'Completed' },
-    { id: 2, name: 'Maria Lopez', age: '1 year', sex: 'Female', vaccine: 'Measles-Rubella', date: 'April 15, 2026', worker: 'Nurse Ana Reyes', remarks: 'Completed' },
-    { id: 3, name: 'Pedro Garcia', age: 'Newborn', sex: 'Male', vaccine: 'BCG, Hepatitis B', date: 'April 15, 2026', worker: 'Liza Cruz', remarks: 'First dose' },
-    { id: 4, name: 'Ana Ramos', age: '9 months', sex: 'Female', vaccine: 'Oral Polio Vaccine', date: 'April 15, 2026', worker: 'BHW Carla Diaz', remarks: 'Completed' },
-    { id: 5, name: 'Mark Torres', age: '2 years', sex: 'Male', vaccine: 'Booster Vaccine', date: 'April 15, 2026', worker: 'Nurse Ana Reyes', remarks: 'Completed' },
-  ];
-
   constructor(private appointmentService: AppointmentService) {
-    this.pendingCount$ = this.appointmentService.getAppointments().pipe(
-      map(apps => apps.filter(a => a.status === 'Pending').length)
+    const apps$ = this.appointmentService.getAppointments();
+
+    this.pendingCount$ = apps$.pipe(
+      map(apps => apps.filter(a => !a.reviewed).length)
     );
-    this.approvedCount$ = this.appointmentService.getAppointments().pipe(
-      map(apps => apps.filter(a => a.status === 'Approved').length)
+    this.approvedCount$ = apps$.pipe(
+      map(apps => apps.filter(a => a.reviewed && a.status !== 'Rejected').length)
     );
-    this.rejectedCount$ = this.appointmentService.getAppointments().pipe(
+    this.rejectedCount$ = apps$.pipe(
       map(apps => apps.filter(a => a.status === 'Rejected').length)
     );
-    this.totalCount$ = this.appointmentService.getAppointments().pipe(
+    this.totalCount$ = apps$.pipe(
       map(apps => apps.length)
     );
+
+    this.recentRecords$ = apps$.pipe(
+      map(apps => {
+        return apps
+          .filter(a => a.reviewed && a.status !== 'Rejected')
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 5);
+      })
+    );
+  }
+
+  getStatusClass(status: string): string {
+    return status.toLowerCase().replace(' ', '-');
   }
 }
