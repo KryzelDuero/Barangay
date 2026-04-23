@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { NotificationService } from '../../services/notification.service';
 
 interface SMSHistory {
   id: string;
@@ -92,7 +93,7 @@ export class SmsNotificationComponent implements OnInit {
     return Math.ceil(this.filteredContacts.length / this.pageSize) || 1;
   }
 
-  constructor() {}
+  constructor(private notificationService: NotificationService) {}
 
   ngOnInit(): void {
     this.loadFromLocalStorage();
@@ -154,16 +155,49 @@ export class SmsNotificationComponent implements OnInit {
 
   onSend(id: string) {
     const item = this.history.find(h => h.id === id);
-    if (item) {
-      if (item.recipients === 0) {
-        alert('Please add at least one target barangay before sending.');
-        return;
-      }
-      if (confirm(`Are you sure you want to send "${item.title}" to ${item.recipients} recipients?`)) {
-        item.status = 'Sent';
-        item.sentAt = new Date().toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-        this.saveToLocalStorage();
-      }
+    if (!item) return;
+
+    // Resolve the target barangay list from the stored string
+    const targetBarangayList: string[] =
+      item.targetBarangays === 'All Barangays'
+        ? [...this.barangays]
+        : item.targetBarangays === 'None'
+          ? []
+          : item.targetBarangays.split(', ');
+
+    // Filter registered contacts that belong to the selected barangays
+    const matchingContacts = this.contacts.filter(c =>
+      targetBarangayList.includes(c.barangay)
+    );
+
+    if (matchingContacts.length === 0) {
+      alert(
+        'No registered contacts found for the selected barangay(s).\n' +
+        'Please add contact numbers in the "Barangay Contacts" tab first.'
+      );
+      return;
+    }
+
+    if (confirm(
+      `Send "${item.title}" to ${matchingContacts.length} registered contact(s) in the selected barangay(s)?`
+    )) {
+      // Send SMS to each matching contact number
+      matchingContacts.forEach(contact => {
+        this.notificationService.sendSms(contact.mobileNumber, item.message)
+          .subscribe({
+            next: (res) => console.log(`✅ SMS sent to ${contact.mobileNumber} (${contact.barangay}):`, res),
+            error: (err) => console.error(`❌ SMS failed for ${contact.mobileNumber} (${contact.barangay}):`, err)
+          });
+      });
+
+      // Update the history record with actual recipient count
+      item.status = 'Sent';
+      item.recipients = matchingContacts.length;
+      item.sentAt = new Date().toLocaleString('en-US', {
+        hour12: true, month: 'short', day: 'numeric',
+        year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+      this.saveToLocalStorage();
     }
   }
 
@@ -217,8 +251,16 @@ export class SmsNotificationComponent implements OnInit {
       return;
     }
 
-    const targetString = this.newNotification.targets.length === this.barangays.length ? 'All Barangays' : this.newNotification.targets.join(', ') || 'None';
-    
+    const targetString =
+      this.newNotification.targets.length === this.barangays.length
+        ? 'All Barangays'
+        : this.newNotification.targets.join(', ') || 'None';
+
+    // Count only contacts registered in the selected barangays
+    const recipientCount = this.contacts.filter(c =>
+      this.newNotification.targets.includes(c.barangay)
+    ).length;
+
     if (this.isEditing && this.editingId) {
       const index = this.history.findIndex(h => h.id === this.editingId);
       if (index !== -1) {
@@ -227,7 +269,7 @@ export class SmsNotificationComponent implements OnInit {
           title: this.newNotification.title,
           message: this.newNotification.message,
           targetBarangays: targetString,
-          recipients: this.newNotification.targets.length
+          recipients: recipientCount
         };
       }
     } else {
@@ -236,9 +278,12 @@ export class SmsNotificationComponent implements OnInit {
         title: this.newNotification.title,
         message: this.newNotification.message,
         targetBarangays: targetString,
-        recipients: this.newNotification.targets.length,
+        recipients: recipientCount,
         status: 'Draft',
-        createdAt: new Date().toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+        createdAt: new Date().toLocaleString('en-US', {
+          hour12: true, month: 'short', day: 'numeric',
+          year: 'numeric', hour: '2-digit', minute: '2-digit'
+        })
       };
       this.history.unshift(record);
     }
