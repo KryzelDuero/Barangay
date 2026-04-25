@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-contact',
@@ -24,6 +25,7 @@ export class ContactComponent {
 
   async onSubmit() {
     this.isSubmitted = true;
+    
     if (this.contactForm.valid) {
       try {
         const response = await fetch("https://formsubmit.co/ajax/duero.kryzel99@gmail.com", {
@@ -41,16 +43,38 @@ export class ContactComponent {
         });
 
         if (response.ok) {
-          alert('Thank you for reaching out! Your message has been sent successfully.');
+          Swal.fire({
+            icon: 'success',
+            title: 'Message Sent!',
+            text: 'Thank you for reaching out! Your message has been sent successfully.',
+            confirmButtonColor: '#0080a0'
+          });
           this.contactForm.reset();
           this.isSubmitted = false;
         } else {
-          alert('Something went wrong. Please try again.');
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Something went wrong. Please try again.',
+            confirmButtonColor: '#0080a0'
+          });
         }
       } catch (error) {
         console.error('Error sending message:', error);
-        alert('Failed to send message. Please check your connection.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to send message. Please check your connection.',
+          confirmButtonColor: '#0080a0'
+        });
       }
+    } else {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Incomplete Form',
+        text: 'Please fill out all required fields correctly before sending.',
+        confirmButtonColor: '#0080a0'
+      });
     }
   }
 }

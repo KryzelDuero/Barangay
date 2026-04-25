@@ -1,19 +1,17 @@
 .footer {
-  padding: 2rem;
-  background-color: var(--bg-green);
-  border-top: 1px solid var(--border-color);
-  text-align: center;
+  padding: 1.2rem 2rem;
+  background-color: #0F4C5C;
+  color: white;
   margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.links {
-  display: flex;
-  justify-content: center;
-  gap: 3rem;
+.footer-bottom {
+  text-align: center;
+  font-size: 0.85rem;
+  opacity: 0.7;
 }
 
-.link {
-  color: var(--accent-blue);
-  text-decoration: underline;
-  font-size: 1rem;
+.footer-bottom p {
+  margin: 0;
 }

@@ -39,7 +39,6 @@
           <option value="Pending">Pending</option>
           <option value="First dose">First dose</option>
           <option value="Second dose">Second dose</option>
-          <option value="Completed">Completed</option>
         </select>
       </div>
     </section>
@@ -70,6 +69,7 @@
               <th>Vaccine Issued</th>
               <th>Date</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -84,6 +84,11 @@
                 <span class="status-label" [ngClass]="getStatusClass(record.status)">
                   {{ record.status }}
                 </span>
+              </td>
+              <td>
+                <button class="view-btn" (click)="onViewRecord(record)">
+                  <span class="icon">👁️</span> View
+                </button>
               </td>
             </tr>
           </tbody>
@@ -108,6 +113,103 @@
         </div>
       </div>
     </section>
+  </div>
+</div>
+
+<!-- View Details Modal -->
+<div class="modal-overlay fade-in" *ngIf="isViewModalOpen" (click)="closeViewModal()">
+  <div class="modal-content view-modal card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">
+        <h2>Immunization <span class="highlight">Details</span></h2>
+        <p>Comprehensive record of the patient's immunization profile.</p>
+      </div>
+      <button class="close-modal" (click)="closeViewModal()">&times;</button>
+    </div>
+
+    <div class="modal-body" *ngIf="selectedRecord">
+      <!-- Patient Basic Info -->
+      <div class="info-section">
+        <h3><span class="icon">👶</span> Patient Information</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>FULL NAME</label>
+            <p>{{ selectedRecord.babyName }}</p>
+          </div>
+          <div class="info-item">
+            <label>AGE / SEX</label>
+            <p>{{ selectedRecord.babyAge }} / {{ selectedRecord.babySex }}</p>
+          </div>
+          <div class="info-item">
+            <label>BIRTH WEIGHT</label>
+            <p>{{ selectedRecord.birthWeight ? selectedRecord.birthWeight + ' kg' : 'N/A' }}</p>
+          </div>
+          <div class="info-item">
+            <label>RECORD NUMBER</label>
+            <p>{{ selectedRecord.immunizationRecordNumber || 'Unassigned' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parent Info -->
+      <div class="info-section">
+        <h3><span class="icon">👤</span> Guardian Information</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>GUARDIAN NAME</label>
+            <p>{{ selectedRecord.guardianName }} ({{ selectedRecord.relationship }})</p>
+          </div>
+          <div class="info-item">
+            <label>CONTACT NUMBER</label>
+            <p>{{ selectedRecord.guardianContact }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Immunization Details -->
+      <div class="info-section highlighted">
+        <h3><span class="icon">💉</span> Immunization History</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>VACCINE ISSUED</label>
+            <p class="premium-text">{{ selectedRecord.vaccineRequested }}</p>
+          </div>
+          <div class="info-item">
+            <label>DATE ADMINISTERED</label>
+            <p>{{ selectedRecord.preferredDate | date:'fullDate' }}</p>
+          </div>
+          <div class="info-item">
+            <label>CLINIC</label>
+            <p>{{ selectedRecord.preferredClinic }}</p>
+          </div>
+          <div class="info-item">
+            <label>STATUS</label>
+            <span class="status-label" [ngClass]="getStatusClass(selectedRecord.status)">
+              {{ selectedRecord.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Health Info -->
+      <div class="info-section">
+        <h3><span class="icon">❤️</span> Health Profile</h3>
+        <div class="info-grid full-width">
+          <div class="info-item">
+            <label>VACCINES PREVIOUSLY RECEIVED</label>
+            <p>{{ selectedRecord.vaccinesReceived || 'None recorded' }}</p>
+          </div>
+          <div class="info-item">
+            <label>KNOWN ALLERGIES</label>
+            <p>{{ selectedRecord.allergies || 'No known allergies' }}</p>
+          </div>
+          <div class="info-item">
+            <label>MEDICAL CONDITIONS</label>
+            <p>{{ selectedRecord.medicalConditions || 'No existing conditions' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
