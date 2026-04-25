@@ -28,7 +28,6 @@
             <option value="All">All Status</option>
             <option value="Pending">Pending</option>
             <option value="First dose">First dose</option>
-            <option value="Second dose">Second dose</option>
           </select>
         </div>
       </div>
@@ -71,7 +70,6 @@
                   <option value="Pending">Pending</option>
                   <option value="First dose">First dose</option>
                   <option value="Second dose">Second dose</option>
-                  <option value="Completed">Completed</option>
                 </select>
               </td>
               <td>{{ app.preferredDate | date:'shortDate' }}</td>
@@ -172,7 +170,13 @@
         <div class="form-grid">
           <div class="form-group">
             <label>Vaccine Being Requested</label>
-            <input type="text" [(ngModel)]="selectedAppointment.vaccineRequested" name="vaccineReq">
+            <select [(ngModel)]="selectedAppointment.vaccineRequested" name="vaccineReq">
+              <option value="BCG">BCG</option>
+              <option value="Hepatitis B">Hepatitis B</option>
+              <option value="Rotavirus">Rotavirus</option>
+              <option value="DTaP">DTaP</option>
+              <option value="Hib">Hib</option>
+            </select>
           </div>
           <div class="form-group">
             <label>Vaccines Already Received</label>

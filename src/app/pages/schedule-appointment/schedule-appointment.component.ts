@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AppointmentService } from '../../services/appointment.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-schedule-appointment',
@@ -29,6 +30,7 @@ export class ScheduleAppointmentComponent {
       babyAge: ['', Validators.required],
       babySex: ['', Validators.required],
       birthWeight: [''],
+      vaccineRequested: ['', Validators.required],
       vaccinesReceived: [''],
       immunizationRecordNumber: [''],
       allergies: [''],
@@ -56,10 +58,24 @@ export class ScheduleAppointmentComponent {
         preferredClinic: ''
       };
       this.appointmentService.addAppointment(formValue);
-      alert('Appointment request submitted successfully! It is now pending for assessment.');
-      this.appointmentForm.reset();
-      this.isSubmitted = false;
-      this.router.navigate(['/']);
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Registration Submitted!',
+        text: 'Your registration has been submitted successfully and is pending assessment.',
+        confirmButtonColor: '#0080a0'
+      }).then(() => {
+        this.appointmentForm.reset();
+        this.isSubmitted = false;
+        window.scrollTo(0, 0);
+      });
+    } else {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Incomplete Form',
+        text: 'Please fill out all required fields correctly before submitting.',
+        confirmButtonColor: '#0080a0'
+      });
     }
   }
 }

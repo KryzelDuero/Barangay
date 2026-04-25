@@ -5,6 +5,7 @@ import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { AppointmentService, Appointment } from '../../services/appointment.service';
 import { NotificationService } from '../../services/notification.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-manage-appointment',
@@ -37,7 +38,7 @@ export class ManageAppointmentComponent implements OnInit {
       this.statusSubject.asObservable().pipe(startWith('All'))
     ]).pipe(
       map(([apps, search, status]) => {
-        let filtered = apps.filter(a => a.reviewed && a.status !== 'Rejected' && !a.archived && a.status !== 'Completed');
+        let filtered = apps.filter(a => a.reviewed && a.status !== 'Rejected' && !a.archived && a.status !== 'Completed' && a.status !== 'Second dose');
         
         if (status !== 'All') {
           filtered = filtered.filter(a => a.status === status);
@@ -109,7 +110,19 @@ export class ManageAppointmentComponent implements OnInit {
 
   onStatusUpdate(id: string, event: Event) {
     const select = event.target as HTMLSelectElement;
-    this.appointmentService.updateAppointmentStatus(id, select.value as any);
+    const newStatus = select.value as any;
+    
+    this.appointmentService.updateAppointmentStatus(id, newStatus);
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Status Updated',
+      text: `Patient status has been changed to ${newStatus}.`,
+      timer: 1500,
+      showConfirmButton: false,
+      position: 'top-end',
+      toast: true
+    });
   }
 
   allowOnlyNumbers(event: KeyboardEvent) {
@@ -156,12 +169,35 @@ export class ManageAppointmentComponent implements OnInit {
       }
 
       this.closeEditModal();
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Changes Saved',
+        text: 'Patient details and schedule have been updated.',
+        confirmButtonColor: '#0080a0'
+      });
     }
   }
 
   onDelete(id: string) {
-    if (confirm('Are you sure you want to remove this record from management? It will still be available in history.')) {
-      this.appointmentService.archiveFromManagement(id);
-    }
+    Swal.fire({
+      title: 'Archive Record?',
+      text: 'Are you sure you want to remove this record from management? It will still be available in history.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#0080a0',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, archive it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.appointmentService.archiveFromManagement(id);
+        Swal.fire({
+          icon: 'success',
+          title: 'Archived',
+          text: 'The record has been moved to history.',
+          confirmButtonColor: '#0080a0'
+        });
+      }
+    });
   }
 }

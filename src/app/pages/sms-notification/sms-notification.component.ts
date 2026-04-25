@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../services/notification.service';
+import Swal from 'sweetalert2';
 
 interface SMSHistory {
   id: string;
@@ -157,7 +158,6 @@ export class SmsNotificationComponent implements OnInit {
     const item = this.history.find(h => h.id === id);
     if (!item) return;
 
-    // Resolve the target barangay list from the stored string
     const targetBarangayList: string[] =
       item.targetBarangays === 'All Barangays'
         ? [...this.barangays]
@@ -165,40 +165,54 @@ export class SmsNotificationComponent implements OnInit {
           ? []
           : item.targetBarangays.split(', ');
 
-    // Filter registered contacts that belong to the selected barangays
     const matchingContacts = this.contacts.filter(c =>
       targetBarangayList.includes(c.barangay)
     );
 
     if (matchingContacts.length === 0) {
-      alert(
-        'No registered contacts found for the selected barangay(s).\n' +
-        'Please add contact numbers in the "Barangay Contacts" tab first.'
-      );
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Contacts Found',
+        text: 'No registered contacts found for the selected barangay(s). Please add contact numbers in the "Barangay Contacts" tab first.',
+        confirmButtonColor: '#0080a0'
+      });
       return;
     }
 
-    if (confirm(
-      `Send "${item.title}" to ${matchingContacts.length} registered contact(s) in the selected barangay(s)?`
-    )) {
-      // Send SMS to each matching contact number
-      matchingContacts.forEach(contact => {
-        this.notificationService.sendSms(contact.mobileNumber, item.message)
-          .subscribe({
-            next: (res) => console.log(`✅ SMS sent to ${contact.mobileNumber} (${contact.barangay}):`, res),
-            error: (err) => console.error(`❌ SMS failed for ${contact.mobileNumber} (${contact.barangay}):`, err)
-          });
-      });
+    Swal.fire({
+      title: 'Send Notification?',
+      text: `Send "${item.title}" to ${matchingContacts.length} registered contact(s) in the selected barangay(s)?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#0080a0',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, send it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        matchingContacts.forEach(contact => {
+          this.notificationService.sendSms(contact.mobileNumber, item.message)
+            .subscribe({
+              next: (res) => console.log(`✅ SMS sent to ${contact.mobileNumber} (${contact.barangay}):`, res),
+              error: (err) => console.error(`❌ SMS failed for ${contact.mobileNumber} (${contact.barangay}):`, err)
+            });
+        });
 
-      // Update the history record with actual recipient count
-      item.status = 'Sent';
-      item.recipients = matchingContacts.length;
-      item.sentAt = new Date().toLocaleString('en-US', {
-        hour12: true, month: 'short', day: 'numeric',
-        year: 'numeric', hour: '2-digit', minute: '2-digit'
-      });
-      this.saveToLocalStorage();
-    }
+        item.status = 'Sent';
+        item.recipients = matchingContacts.length;
+        item.sentAt = new Date().toLocaleString('en-US', {
+          hour12: true, month: 'short', day: 'numeric',
+          year: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+        this.saveToLocalStorage();
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Sent!',
+          text: 'SMS notifications are being sent.',
+          confirmButtonColor: '#0080a0'
+        });
+      }
+    });
   }
 
   onAddNumber() {
@@ -247,7 +261,12 @@ export class SmsNotificationComponent implements OnInit {
 
   saveNotificationAsDraft() {
     if (!this.newNotification.title || !this.newNotification.message) {
-      alert('Please fill in title and message.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Information',
+        text: 'Please fill in both the title and the message.',
+        confirmButtonColor: '#0080a0'
+      });
       return;
     }
 
@@ -256,7 +275,6 @@ export class SmsNotificationComponent implements OnInit {
         ? 'All Barangays'
         : this.newNotification.targets.join(', ') || 'None';
 
-    // Count only contacts registered in the selected barangays
     const recipientCount = this.contacts.filter(c =>
       this.newNotification.targets.includes(c.barangay)
     ).length;
@@ -289,21 +307,43 @@ export class SmsNotificationComponent implements OnInit {
     }
     this.saveToLocalStorage();
     this.closeModals();
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Saved',
+      text: 'Notification draft has been saved successfully.',
+      confirmButtonColor: '#0080a0'
+    });
   }
 
   saveNumber() {
     if (!this.newContact.barangay || !this.newContact.mobileNumber) {
-      alert('Please fill in all fields.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Incomplete Details',
+        text: 'Please select a barangay and enter a mobile number.',
+        confirmButtonColor: '#0080a0'
+      });
       return;
     }
 
     if (this.newContact.mobileNumber.length !== 11) {
-      alert('Mobile number must be exactly 11 digits.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Number',
+        text: 'Mobile number must be exactly 11 digits.',
+        confirmButtonColor: '#0080a0'
+      });
       return;
     }
 
     if (!this.newContact.mobileNumber.startsWith('09')) {
-      alert('Mobile number must start with 09.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Number',
+        text: 'Mobile number must start with 09.',
+        confirmButtonColor: '#0080a0'
+      });
       return;
     }
 
@@ -316,19 +356,59 @@ export class SmsNotificationComponent implements OnInit {
     this.contacts.unshift(record);
     this.saveToLocalStorage();
     this.closeModals();
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Contact Added!',
+      text: `Number ${this.newContact.mobileNumber} has been added to ${this.newContact.barangay}.`,
+      confirmButtonColor: '#0080a0'
+    });
   }
 
   onDeleteHistory(id: string) {
-    if (confirm('Are you sure you want to delete this notification log?')) {
-      this.history = this.history.filter(h => h.id !== id);
-      this.saveToLocalStorage();
-    }
+    Swal.fire({
+      title: 'Delete Log?',
+      text: "Are you sure you want to delete this notification log?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#0080a0',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.history = this.history.filter(h => h.id !== id);
+        this.saveToLocalStorage();
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted',
+          text: 'The notification log has been deleted.',
+          confirmButtonColor: '#0080a0'
+        });
+      }
+    });
   }
 
   onRemoveContact(id: string) {
-    if (confirm('Are you sure you want to remove this contact?')) {
-      this.contacts = this.contacts.filter(c => c.id !== id);
-      this.saveToLocalStorage();
-    }
+    const contact = this.contacts.find(c => c.id === id);
+    Swal.fire({
+      title: 'Remove Contact?',
+      text: `Are you sure you want to remove ${contact?.mobileNumber} from ${contact?.barangay}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#0080a0',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, remove it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.contacts = this.contacts.filter(c => c.id !== id);
+        this.saveToLocalStorage();
+        Swal.fire({
+          icon: 'success',
+          title: 'Removed!',
+          text: 'The contact has been removed successfully.',
+          confirmButtonColor: '#0080a0'
+        });
+      }
+    });
   }
 }

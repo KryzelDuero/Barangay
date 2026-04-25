@@ -80,6 +80,18 @@
         <h3><span class="icon">💉</span> Immunization Details</h3>
         <div class="form-grid">
           <div class="form-group">
+            <label>Vaccine Being Requested *</label>
+            <select formControlName="vaccineRequested">
+              <option value="" disabled>Select vaccine</option>
+              <option value="BCG">BCG</option>
+              <option value="Hepatitis B">Hepatitis B</option>
+              <option value="Rotavirus">Rotavirus</option>
+              <option value="DTaP">DTaP</option>
+              <option value="Hib">Hib</option>
+            </select>
+            <span class="error" *ngIf="isSubmitted && appointmentForm.get('vaccineRequested')?.invalid">Vaccine choice is required</span>
+          </div>
+          <div class="form-group">
             <label>Vaccines Already Received</label>
             <input type="text" formControlName="vaccinesReceived" placeholder="List vaccines and dates if possible">
           </div>
@@ -120,7 +132,7 @@
 
       <div class="form-actions">
         <button type="submit" class="submit-btn" [class.invalid-submit]="isSubmitted && !appointmentForm.valid">
-          Confirm Appointment
+          Submit
         </button>
       </div>
 

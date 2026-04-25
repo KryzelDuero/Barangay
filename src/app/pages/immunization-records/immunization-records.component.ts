@@ -5,6 +5,7 @@ import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { AppointmentService, Appointment } from '../../services/appointment.service';
 import { NotificationService } from '../../services/notification.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-immunization-records',
@@ -29,7 +30,9 @@ export class ImmunizationRecordsComponent implements OnInit {
 
   // SMS Modal State
   isCreateModalOpen = false;
-  targetStatuses: string[] = ['First dose', 'Second dose'];
+  isViewModalOpen = false;
+  selectedRecord: Appointment | null = null;
+  targetStatuses: string[] = ['First dose'];
   newNotification = {
     preferredDate: '',
     preferredTime: '',
@@ -113,12 +116,22 @@ export class ImmunizationRecordsComponent implements OnInit {
 
   sendNotification() {
     if (!this.newNotification.preferredDate || !this.newNotification.preferredTime) {
-      alert('Please fill in both date and time.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Details',
+        text: 'Please fill in both the preferred date and time.',
+        confirmButtonColor: '#0080a0'
+      });
       return;
     }
 
     if (this.newNotification.targets.length === 0) {
-      alert('Please select at least one target status.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Target Selected',
+        text: 'Please select at least one target status (e.g., First dose).',
+        confirmButtonColor: '#0080a0'
+      });
       return;
     }
 
@@ -126,7 +139,7 @@ export class ImmunizationRecordsComponent implements OnInit {
       month: 'long', day: 'numeric', year: 'numeric' 
     });
     
-    const statusText = this.newNotification.targets.join(' and ');
+    const statusText = this.newNotification.targets.includes('First dose') ? 'Second dose' : this.newNotification.targets.join(' and ');
     const generatedTitle = `Immunization Schedule: ${statusText}`;
     const generatedMessage = `Good day! Your next immunization (${statusText}) is scheduled on ${dateFormatted} at ${this.newNotification.preferredTime} at the ${this.newNotification.preferredClinic}. Please be on time. Thank you!`;
 
@@ -137,36 +150,63 @@ export class ImmunizationRecordsComponent implements OnInit {
         this.newNotification.targets.includes(a.status)
       );
 
-      // Send real SMS to each matching patient's guardian contact
-      matchingPatients.forEach(patient => {
-        if (patient.guardianContact) {
-          // Use the patient's OWN status, not the combined selection text
-          const personalizedMessage = `Good day, ${patient.guardianName}! Your child ${patient.babyName}'s next immunization (${patient.status}) is scheduled on ${dateFormatted} at ${this.newNotification.preferredTime} at the ${this.newNotification.preferredClinic}. Please be on time. Thank you!`;
-          this.notificationService.sendSms(patient.guardianContact, personalizedMessage).subscribe({
-            next: (res) => console.log(`✅ SMS sent to ${patient.guardianName} (${patient.guardianContact}) [${patient.status}]:`, res),
-            error: (err) => console.error(`❌ SMS failed for ${patient.guardianName} (${patient.guardianContact}):`, err)
+      if (matchingPatients.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'No Recipients',
+          text: 'No patients found with the selected status.',
+          confirmButtonColor: '#0080a0'
+        });
+        return;
+      }
+
+      Swal.fire({
+        title: 'Send Notifications?',
+        text: `This will send SMS alerts to ${matchingPatients.length} patient(s). Proceed?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#0080a0',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, send now'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.closeModals();
+          
+          matchingPatients.forEach(patient => {
+            if (patient.guardianContact) {
+              const nextDose = patient.status === 'First dose' ? 'Second dose' : patient.status;
+              const personalizedMessage = `Good day, ${patient.guardianName}! Your child ${patient.babyName}'s next immunization (${nextDose}) is scheduled on ${dateFormatted} at ${this.newNotification.preferredTime} at the ${this.newNotification.preferredClinic}. Please be on time. Thank you!`;
+              this.notificationService.sendSms(patient.guardianContact, personalizedMessage).subscribe({
+                next: (res) => console.log(`✅ SMS sent to ${patient.guardianName} (${patient.guardianContact}) [${patient.status}]:`, res),
+                error: (err) => console.error(`❌ SMS failed for ${patient.guardianName} (${patient.guardianContact}):`, err)
+              });
+            }
+          });
+
+          // Log to SMS history
+          const targetString = this.newNotification.targets.join(', ');
+          const savedHistory = localStorage.getItem('sms_history');
+          let history = savedHistory ? JSON.parse(savedHistory) : [];
+          history.unshift({
+            id: Math.random().toString(36).substr(2, 9),
+            title: generatedTitle,
+            message: generatedMessage,
+            targetBarangays: targetString,
+            recipients: matchingPatients.length,
+            status: 'Sent',
+            sentAt: new Date().toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            createdAt: new Date().toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+          });
+          localStorage.setItem('sms_history', JSON.stringify(history));
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Notifications Sent',
+            text: `Successfully sent alerts to ${matchingPatients.length} recipient(s).`,
+            confirmButtonColor: '#0080a0'
           });
         }
       });
-
-      // Log to SMS history
-      const targetString = this.newNotification.targets.join(', ');
-      const savedHistory = localStorage.getItem('sms_history');
-      let history = savedHistory ? JSON.parse(savedHistory) : [];
-      history.unshift({
-        id: Math.random().toString(36).substr(2, 9),
-        title: generatedTitle,
-        message: generatedMessage,
-        targetBarangays: targetString,
-        recipients: matchingPatients.length,
-        status: 'Sent',
-        sentAt: new Date().toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        createdAt: new Date().toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-      });
-      localStorage.setItem('sms_history', JSON.stringify(history));
-
-      this.closeModals();
-      alert(`✅ Notification sent to ${matchingPatients.length} recipient(s).`);
     });
   }
 
@@ -203,6 +243,16 @@ export class ImmunizationRecordsComponent implements OnInit {
 
   mathMin(a: number, b: number): number {
     return Math.min(a, b);
+  }
+
+  onViewRecord(record: Appointment) {
+    this.selectedRecord = record;
+    this.isViewModalOpen = true;
+  }
+
+  closeViewModal() {
+    this.isViewModalOpen = false;
+    this.selectedRecord = null;
   }
 
   getStatusClass(status: string): string {

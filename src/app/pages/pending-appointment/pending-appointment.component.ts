@@ -6,6 +6,7 @@ import { map, startWith } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { AppointmentService, Appointment } from '../../services/appointment.service';
 import { NotificationService } from '../../services/notification.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-pending-appointment',
@@ -139,35 +140,69 @@ export class PendingAppointmentComponent implements OnInit {
   }
 
   onApprove(id: string) {
-    if (confirm('Approve this request and move it to the management database?')) {
-      const app = this.appointmentService.getAppointmentById(id);
-      if (app) {
-        this.appointmentService.updateAppointmentStatus(id, 'Pending');
-        this.appointmentService.markAsReviewed(id);
-        
-        this.notificationService.notifyAppointmentStatus(
-          app.guardianContact,
-          app.babyName,
-          'Approved'
-        );
+    Swal.fire({
+      title: 'Approve Request?',
+      text: 'Move this request to the management database?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#0080a0',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, approve it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const app = this.appointmentService.getAppointmentById(id);
+        if (app) {
+          this.appointmentService.updateAppointmentStatus(id, 'Pending');
+          this.appointmentService.markAsReviewed(id);
+          
+          this.notificationService.notifyAppointmentStatus(
+            app.guardianContact,
+            app.babyName,
+            'Approved'
+          );
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'Approved!',
+            text: 'The request has been moved to management.',
+            confirmButtonColor: '#0080a0'
+          });
+        }
       }
-    }
+    });
   }
 
   onReject(id: string) {
-    if (confirm('Reject this request and move it to the records?')) {
-      const app = this.appointmentService.getAppointmentById(id);
-      if (app) {
-        this.appointmentService.updateAppointmentStatus(id, 'Rejected');
-        this.appointmentService.markAsReviewed(id);
+    Swal.fire({
+      title: 'Reject Request?',
+      text: 'Move this request to the records as rejected?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#0080a0',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, reject it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const app = this.appointmentService.getAppointmentById(id);
+        if (app) {
+          this.appointmentService.updateAppointmentStatus(id, 'Rejected');
+          this.appointmentService.markAsReviewed(id);
 
-        this.notificationService.notifyAppointmentStatus(
-          app.guardianContact,
-          app.babyName,
-          'Rejected'
-        );
+          this.notificationService.notifyAppointmentStatus(
+            app.guardianContact,
+            app.babyName,
+            'Rejected'
+          );
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'Rejected',
+            text: 'The request has been moved to records.',
+            confirmButtonColor: '#0080a0'
+          });
+        }
       }
-    }
+    });
   }
 
   getStatusClass(status: string): string {
@@ -175,8 +210,24 @@ export class PendingAppointmentComponent implements OnInit {
   }
 
   onDelete(id: string) {
-    if (confirm('Are you sure you want to delete this record?')) {
-      this.appointmentService.deleteAppointment(id);
-    }
+    Swal.fire({
+      title: 'Delete Record?',
+      text: 'Are you sure you want to delete this record permanently?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#0080a0',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.appointmentService.deleteAppointment(id);
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted',
+          text: 'The record has been deleted.',
+          confirmButtonColor: '#0080a0'
+        });
+      }
+    });
   }
 }
