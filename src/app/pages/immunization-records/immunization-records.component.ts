@@ -160,52 +160,46 @@ export class ImmunizationRecordsComponent implements OnInit {
         return;
       }
 
-      Swal.fire({
-        title: 'Send Notifications?',
-        text: `This will send SMS alerts to ${matchingPatients.length} patient(s). Proceed?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#0080a0',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, send now'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          this.closeModals();
-          
-          matchingPatients.forEach(patient => {
-            if (patient.guardianContact) {
-              const nextDose = patient.status === 'First dose' ? 'Second dose' : patient.status;
-              const personalizedMessage = `Good day, ${patient.guardianName}! Your child ${patient.babyName}'s next immunization (${nextDose}) is scheduled on ${dateFormatted} at ${this.newNotification.preferredTime} at the ${this.newNotification.preferredClinic}. Please be on time. Thank you!`;
-              this.notificationService.sendSms(patient.guardianContact, personalizedMessage).subscribe({
-                next: (res) => console.log(`✅ SMS sent to ${patient.guardianName} (${patient.guardianContact}) [${patient.status}]:`, res),
-                error: (err) => console.error(`❌ SMS failed for ${patient.guardianName} (${patient.guardianContact}):`, err)
-              });
-            }
-          });
+      // Capture details before closing modal/resetting form
+      const scheduledTime = this.newNotification.preferredTime;
+      const scheduledClinic = this.newNotification.preferredClinic;
 
-          // Log to SMS history
-          const targetString = this.newNotification.targets.join(', ');
-          const savedHistory = localStorage.getItem('sms_history');
-          let history = savedHistory ? JSON.parse(savedHistory) : [];
-          history.unshift({
-            id: Math.random().toString(36).substr(2, 9),
-            title: generatedTitle,
-            message: generatedMessage,
-            targetBarangays: targetString,
-            recipients: matchingPatients.length,
-            status: 'Sent',
-            sentAt: new Date().toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-            createdAt: new Date().toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-          });
-          localStorage.setItem('sms_history', JSON.stringify(history));
+      // Close the modal immediately
+      this.closeModals();
 
-          Swal.fire({
-            icon: 'success',
-            title: 'Notifications Sent',
-            text: `Successfully sent alerts to ${matchingPatients.length} recipient(s).`,
-            confirmButtonColor: '#0080a0'
+      // Send notifications
+      matchingPatients.forEach(patient => {
+        if (patient.guardianContact) {
+          const nextDose = patient.status === 'First dose' ? 'Second dose' : patient.status;
+          const personalizedMessage = `Good day, ${patient.guardianName}! Your child ${patient.babyName}'s next immunization (${nextDose}) is scheduled on ${dateFormatted} at ${scheduledTime} at the ${scheduledClinic}. Please be on time. Thank you!`;
+          this.notificationService.sendSms(patient.guardianContact, personalizedMessage).subscribe({
+            next: (res) => console.log(`✅ SMS sent to ${patient.guardianName} (${patient.guardianContact}) [${patient.status}]:`, res),
+            error: (err) => console.error(`❌ SMS failed for ${patient.guardianName} (${patient.guardianContact}):`, err)
           });
         }
+      });
+
+      // Log to SMS history
+      const targetString = this.newNotification.targets.join(', ');
+      const savedHistory = localStorage.getItem('sms_history');
+      let history = savedHistory ? JSON.parse(savedHistory) : [];
+      history.unshift({
+        id: Math.random().toString(36).substr(2, 9),
+        title: generatedTitle,
+        message: generatedMessage,
+        targetBarangays: targetString,
+        recipients: matchingPatients.length,
+        status: 'Sent',
+        sentAt: new Date().toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        createdAt: new Date().toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      });
+      localStorage.setItem('sms_history', JSON.stringify(history));
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Notifications Sent',
+        text: `Successfully sent alerts to ${matchingPatients.length} recipient(s).`,
+        confirmButtonColor: '#0080a0'
       });
     });
   }

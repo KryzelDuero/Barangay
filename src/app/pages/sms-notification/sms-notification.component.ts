@@ -209,7 +209,10 @@ export class SmsNotificationComponent implements OnInit {
           icon: 'success',
           title: 'Sent!',
           text: 'SMS notifications are being sent.',
-          confirmButtonColor: '#0080a0'
+          timer: 1500,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
         });
       }
     });
@@ -312,7 +315,10 @@ export class SmsNotificationComponent implements OnInit {
       icon: 'success',
       title: 'Saved',
       text: 'Notification draft has been saved successfully.',
-      confirmButtonColor: '#0080a0'
+      timer: 1500,
+      showConfirmButton: false,
+      toast: true,
+      position: 'top-end'
     });
   }
 
@@ -378,11 +384,21 @@ export class SmsNotificationComponent implements OnInit {
       if (result.isConfirmed) {
         this.history = this.history.filter(h => h.id !== id);
         this.saveToLocalStorage();
+
+        // Adjust pagination if the current page becomes empty
+        const totalPages = Math.ceil(this.history.length / this.pageSize) || 1;
+        if (this.currentPageHistory > totalPages) {
+          this.currentPageHistory = totalPages;
+        }
+
         Swal.fire({
           icon: 'success',
           title: 'Deleted',
           text: 'The notification log has been deleted.',
-          confirmButtonColor: '#0080a0'
+          timer: 1500,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
         });
       }
     });
@@ -402,11 +418,21 @@ export class SmsNotificationComponent implements OnInit {
       if (result.isConfirmed) {
         this.contacts = this.contacts.filter(c => c.id !== id);
         this.saveToLocalStorage();
+
+        // Adjust pagination if the current page becomes empty
+        const totalPages = Math.ceil(this.filteredContacts.length / this.pageSize) || 1;
+        if (this.currentPageContacts > totalPages) {
+          this.currentPageContacts = totalPages;
+        }
+
         Swal.fire({
           icon: 'success',
           title: 'Removed!',
           text: 'The contact has been removed successfully.',
-          confirmButtonColor: '#0080a0'
+          timer: 1500,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
         });
       }
     });

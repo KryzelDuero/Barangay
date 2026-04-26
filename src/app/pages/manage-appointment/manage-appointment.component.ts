@@ -159,10 +159,14 @@ export class ManageAppointmentComponent implements OnInit {
       this.appointmentService.updateAppointmentDetails(this.selectedAppointment.id, this.selectedAppointment);
 
       if (hasDate && hasTime && hasClinic) {
+        const dateFormatted = new Date(this.selectedAppointment.preferredDate).toLocaleDateString('en-US', { 
+          month: 'long', day: 'numeric', year: 'numeric' 
+        });
+        
         this.notificationService.notifyAppointmentSchedule(
           this.selectedAppointment.guardianContact,
           this.selectedAppointment.babyName,
-          this.selectedAppointment.preferredDate,
+          dateFormatted,
           this.selectedAppointment.preferredTime,
           this.selectedAppointment.preferredClinic
         );

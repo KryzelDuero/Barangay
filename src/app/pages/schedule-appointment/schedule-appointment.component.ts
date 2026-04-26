@@ -30,7 +30,7 @@ export class ScheduleAppointmentComponent {
       babyAge: ['', Validators.required],
       babySex: ['', Validators.required],
       birthWeight: [''],
-      vaccineRequested: ['', Validators.required],
+      vaccineRequested: [''],
       vaccinesReceived: [''],
       immunizationRecordNumber: [''],
       allergies: [''],

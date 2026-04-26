@@ -180,7 +180,14 @@
           </div>
           <div class="form-group">
             <label>Vaccines Already Received</label>
-            <input type="text" [(ngModel)]="selectedAppointment.vaccinesReceived" name="vaccinesReceived" disabled>
+            <select [(ngModel)]="selectedAppointment.vaccinesReceived" name="vaccinesReceived" disabled>
+              <option value="" disabled>Select vaccine</option>
+              <option value="BCG">BCG</option>
+              <option value="Hepatitis B">Hepatitis B</option>
+              <option value="Rotavirus">Rotavirus</option>
+              <option value="DTaP">DTaP</option>
+              <option value="Hib">Hib</option>
+            </select>
           </div>
           <div class="form-group">
             <label>Immunization Record Number</label>

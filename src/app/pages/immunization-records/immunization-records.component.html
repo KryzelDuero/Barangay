@@ -196,8 +196,16 @@
         <h3><span class="icon">❤️</span> Health Profile</h3>
         <div class="info-grid full-width">
           <div class="info-item">
-            <label>VACCINES PREVIOUSLY RECEIVED</label>
-            <p>{{ selectedRecord.vaccinesReceived || 'None recorded' }}</p>
+            <label>VACCINES ALREADY RECEIVED</label>
+            <select [ngModel]="selectedRecord.vaccinesReceived || ''" name="vaccinesReceived" disabled 
+                    style="width: 100%; padding: 0.8rem; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; color: #64748b; appearance: none; cursor: not-allowed;">
+              <option value="">None recorded</option>
+              <option value="BCG">BCG</option>
+              <option value="Hepatitis B">Hepatitis B</option>
+              <option value="Rotavirus">Rotavirus</option>
+              <option value="DTaP">DTaP</option>
+              <option value="Hib">Hib</option>
+            </select>
           </div>
           <div class="info-item">
             <label>KNOWN ALLERGIES</label>
