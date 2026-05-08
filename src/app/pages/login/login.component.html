@@ -6,8 +6,8 @@
       <input type="password" placeholder="password" class="login-input" [(ngModel)]="password" name="password" />
       <button type="submit" class="login-btn">Login</button>
       <div class="login-links">
-        <a href="#" class="login-link">Forget Password</a>
-        <a href="#" class="login-link">Sign Up</a>
+        <a (click)="handleForgotPassword(); $event.preventDefault()" class="login-link">Forget Password</a>
+        <a (click)="handleSignUp(); $event.preventDefault()" class="login-link">Sign Up</a>
       </div>
     </form>
     <div class="logo-container">

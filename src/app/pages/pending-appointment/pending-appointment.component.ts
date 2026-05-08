@@ -150,24 +150,25 @@ export class PendingAppointmentComponent implements OnInit {
       confirmButtonText: 'Yes, approve it!'
     }).then((result) => {
       if (result.isConfirmed) {
-        const app = this.appointmentService.getAppointmentById(id);
-        if (app) {
-          this.appointmentService.updateAppointmentStatus(id, 'Pending');
-          this.appointmentService.markAsReviewed(id);
-          
-          this.notificationService.notifyAppointmentStatus(
-            app.guardianContact,
-            app.babyName,
-            'Approved'
-          );
-          
-          Swal.fire({
-            icon: 'success',
-            title: 'Approved!',
-            text: 'The request has been moved to management.',
-            confirmButtonColor: '#0080a0'
-          });
-        }
+        this.appointmentService.getAppointmentById(id).subscribe(app => {
+          if (app) {
+            this.appointmentService.updateAppointmentStatus(id, 'Pending');
+            this.appointmentService.markAsReviewed(id);
+            
+            this.notificationService.notifyAppointmentStatus(
+              app.guardianContact,
+              app.babyName,
+              'Approved'
+            );
+            
+            Swal.fire({
+              icon: 'success',
+              title: 'Approved!',
+              text: 'The request has been moved to management.',
+              confirmButtonColor: '#0080a0'
+            });
+          }
+        });
       }
     });
   }
@@ -183,24 +184,25 @@ export class PendingAppointmentComponent implements OnInit {
       confirmButtonText: 'Yes, reject it!'
     }).then((result) => {
       if (result.isConfirmed) {
-        const app = this.appointmentService.getAppointmentById(id);
-        if (app) {
-          this.appointmentService.updateAppointmentStatus(id, 'Rejected');
-          this.appointmentService.markAsReviewed(id);
+        this.appointmentService.getAppointmentById(id).subscribe(app => {
+          if (app) {
+            this.appointmentService.updateAppointmentStatus(id, 'Rejected');
+            this.appointmentService.markAsReviewed(id);
 
-          this.notificationService.notifyAppointmentStatus(
-            app.guardianContact,
-            app.babyName,
-            'Rejected'
-          );
-          
-          Swal.fire({
-            icon: 'success',
-            title: 'Rejected',
-            text: 'The request has been moved to records.',
-            confirmButtonColor: '#0080a0'
-          });
-        }
+            this.notificationService.notifyAppointmentStatus(
+              app.guardianContact,
+              app.babyName,
+              'Rejected'
+            );
+            
+            Swal.fire({
+              icon: 'success',
+              title: 'Rejected',
+              text: 'The request has been moved to records.',
+              confirmButtonColor: '#0080a0'
+            });
+          }
+        });
       }
     });
   }

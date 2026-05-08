@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AppointmentService, Appointment } from '../../services/appointment.service';
+import { NotificationService } from '../../services/notification.service';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -20,7 +21,10 @@ export class HomeComponent {
   recentRecords$: Observable<Appointment[]>;
   today: Date = new Date();
 
-  constructor(private appointmentService: AppointmentService) {
+  constructor(
+    private appointmentService: AppointmentService,
+    private notificationService: NotificationService
+  ) {
     const apps$ = this.appointmentService.getAppointments();
 
     this.pendingCount$ = apps$.pipe(
@@ -33,10 +37,10 @@ export class HomeComponent {
       map(apps => apps.length)
     );
 
-    // Load SMS sent count from localStorage
-    const savedHistory = localStorage.getItem('sms_history');
-    const history = savedHistory ? JSON.parse(savedHistory) : [];
-    this.smsSentCount = history.filter((h: any) => h.status === 'Sent').length;
+    // Load SMS sent count from Supabase
+    this.notificationService.getSmsHistory().subscribe(history => {
+      this.smsSentCount = history.filter((h: any) => h.status === 'Sent').length;
+    });
 
     this.recentRecords$ = apps$.pipe(
       map(apps => {

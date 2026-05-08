@@ -57,17 +57,26 @@ export class ScheduleAppointmentComponent {
         preferredTime: '',
         preferredClinic: ''
       };
-      this.appointmentService.addAppointment(formValue);
-      
-      Swal.fire({
-        icon: 'success',
-        title: 'Registration Submitted!',
-        text: 'Your registration has been submitted successfully and is pending assessment.',
-        confirmButtonColor: '#0080a0'
-      }).then(() => {
-        this.appointmentForm.reset();
-        this.isSubmitted = false;
-        window.scrollTo(0, 0);
+      this.appointmentService.addAppointment(formValue).subscribe(({ error }) => {
+        if (!error) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Registration Submitted!',
+            text: 'Your registration has been submitted successfully and is pending assessment.',
+            confirmButtonColor: '#0080a0'
+          }).then(() => {
+            this.appointmentForm.reset();
+            this.isSubmitted = false;
+            window.scrollTo(0, 0);
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Submission Failed',
+            text: 'There was an error saving your data. Please try again or contact support.',
+            confirmButtonColor: '#d33'
+          });
+        }
       });
     } else {
       Swal.fire({
