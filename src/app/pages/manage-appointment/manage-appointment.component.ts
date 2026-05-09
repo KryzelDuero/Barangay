@@ -38,7 +38,7 @@ export class ManageAppointmentComponent implements OnInit {
       this.statusSubject.asObservable().pipe(startWith('All'))
     ]).pipe(
       map(([apps, search, status]) => {
-        let filtered = apps.filter(a => a.reviewed && a.status !== 'Rejected' && !a.archived && a.status !== 'Completed' && a.status !== 'Second dose');
+        let filtered = apps.filter(a => a.reviewed && a.status !== 'Rejected' && !a.archived && a.status !== 'Second dose');
         
         if (status !== 'All') {
           filtered = filtered.filter(a => a.status === status);
@@ -136,13 +136,12 @@ export class ManageAppointmentComponent implements OnInit {
   selectedAppointment: Appointment | null = null;
 
   onEdit(id: string) {
-    this.appointmentService.getAppointments().subscribe(apps => {
-      const found = apps.find(a => a.id === id);
-      if (found) {
-        this.selectedAppointment = { ...found };
+    this.appointmentService.getAppointmentById(id).subscribe(app => {
+      if (app) {
+        this.selectedAppointment = { ...app };
         this.isEditModalOpen = true;
       }
-    }).unsubscribe(); 
+    });
   }
 
   closeEditModal() {

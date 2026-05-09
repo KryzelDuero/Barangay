@@ -181,19 +181,13 @@ export class ImmunizationRecordsComponent implements OnInit {
 
       // Log to SMS history
       const targetString = this.newNotification.targets.join(', ');
-      const savedHistory = localStorage.getItem('sms_history');
-      let history = savedHistory ? JSON.parse(savedHistory) : [];
-      history.unshift({
-        id: Math.random().toString(36).substr(2, 9),
+      this.notificationService.saveSmsHistory({
         title: generatedTitle,
         message: generatedMessage,
-        targetBarangays: targetString,
+        target_statuses: targetString,
         recipients: matchingPatients.length,
-        status: 'Sent',
-        sentAt: new Date().toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        createdAt: new Date().toLocaleString('en-US', { hour12: true, month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-      });
-      localStorage.setItem('sms_history', JSON.stringify(history));
+        status: 'Sent'
+      }).subscribe();
 
       Swal.fire({
         icon: 'success',
