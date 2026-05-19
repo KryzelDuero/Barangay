@@ -44,9 +44,20 @@
 
     <!-- Table Section -->
     <section class="activity-section">
-      <div class="section-header">
-        <h2>{{ viewFilter === 'pending' ? 'In-Review Requests' : 'Appointments History' }}</h2>
-        <span class="badge" *ngIf="totalItems > 0">{{ totalItems }} records found</span>
+      <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2>{{ viewFilter === 'pending' ? 'In-Review Requests' : 'Appointments History' }}</h2>
+          <span class="badge" *ngIf="totalItems > 0">{{ totalItems }} records found</span>
+        </div>
+        
+        <div *ngIf="viewFilter === 'pending' && selectedIds.size > 0" class="bulk-actions" style="display: flex; gap: 0.5rem;">
+          <button class="approve-btn" (click)="bulkApprove()">
+            <span class="icon">✔️</span> Approve Selected ({{selectedIds.size}})
+          </button>
+          <button class="reject-btn" (click)="bulkReject()">
+            <span class="icon">❌</span> Reject Selected ({{selectedIds.size}})
+          </button>
+        </div>
       </div>
 
       <div class="table-container card">
@@ -58,6 +69,9 @@
         <table *ngIf="(paginatedAppointments$ | async)?.length">
           <thead>
             <tr>
+              <th *ngIf="viewFilter === 'pending'" style="width: 40px; text-align: center;">
+                <input type="checkbox" [checked]="isAllSelected" (change)="toggleAll($event)">
+              </th>
               <th>Guardian Name</th>
               <th>Baby Name</th>
               <th>Contact Number</th>
@@ -66,7 +80,10 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let app of paginatedAppointments$ | async">
+            <tr *ngFor="let app of paginatedAppointments$ | async" [class.selected-row]="selectedIds.has(app.id)">
+              <td *ngIf="viewFilter === 'pending'" style="text-align: center;">
+                <input type="checkbox" [checked]="selectedIds.has(app.id)" (change)="toggleSelection(app.id)">
+              </td>
               <td class="guardian-name"><strong>{{ app.guardianName }}</strong></td>
               <td class="baby-name">{{ app.babyName }}</td>
               <td class="contact-num">{{ app.guardianContact }}</td>

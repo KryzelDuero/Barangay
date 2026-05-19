@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { AppointmentService } from '../../services/appointment.service';
 import Swal from 'sweetalert2';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-schedule-appointment',
@@ -57,26 +58,59 @@ export class ScheduleAppointmentComponent {
         preferredTime: '',
         preferredClinic: ''
       };
-      this.appointmentService.addAppointment(formValue).subscribe(({ error }) => {
-        if (!error) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Registration Submitted!',
-            text: 'Your registration has been submitted successfully and is pending assessment.',
-            confirmButtonColor: '#0080a0'
-          }).then(() => {
-            this.appointmentForm.reset();
-            this.isSubmitted = false;
-            window.scrollTo(0, 0);
-          });
-        } else {
+      this.appointmentService.getAppointments().pipe(take(1)).subscribe(appointments => {
+        const duplicateGuardianApp = appointments.find(app => {
+          const dbG = app.guardianName ? app.guardianName.toLowerCase().trim() : '';
+          const formG = formValue.guardianName ? formValue.guardianName.toLowerCase().trim() : '';
+          return dbG !== '' && dbG === formG;
+        });
+
+        const duplicateBabyApp = appointments.find(app => {
+          const dbB = app.babyName ? app.babyName.toLowerCase().trim() : '';
+          const formB = formValue.babyName ? formValue.babyName.toLowerCase().trim() : '';
+          return dbB !== '' && dbB === formB;
+        });
+
+        if (duplicateGuardianApp || duplicateBabyApp) {
+          let errorMessage = '';
+          if (duplicateGuardianApp && duplicateBabyApp) {
+            errorMessage = "Both the guardian's name and baby's name are already registered.";
+          } else if (duplicateGuardianApp) {
+            errorMessage = "This guardian's name is already registered.";
+          } else if (duplicateBabyApp) {
+            errorMessage = "This baby's name is already registered.";
+          }
+
           Swal.fire({
             icon: 'error',
-            title: 'Submission Failed',
-            text: 'There was an error saving your data. Please try again or contact support.',
+            title: 'Duplicate Registration',
+            text: errorMessage,
             confirmButtonColor: '#d33'
           });
+          return;
         }
+
+        this.appointmentService.addAppointment(formValue).subscribe(({ error }) => {
+          if (!error) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Registration Submitted!',
+              text: 'Your registration has been submitted successfully and is pending assessment.',
+              confirmButtonColor: '#0080a0'
+            }).then(() => {
+              this.appointmentForm.reset();
+              this.isSubmitted = false;
+              window.scrollTo(0, 0);
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Submission Failed',
+              text: 'There was an error saving your data. Please try again or contact support.',
+              confirmButtonColor: '#d33'
+            });
+          }
+        });
       });
     } else {
       Swal.fire({
