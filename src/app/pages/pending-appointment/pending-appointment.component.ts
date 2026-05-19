@@ -7,6 +7,7 @@ import { ActivatedRoute } from '@angular/router';
 import { AppointmentService, Appointment } from '../../services/appointment.service';
 import { NotificationService } from '../../services/notification.service';
 import Swal from 'sweetalert2';
+import { take, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-pending-appointment',
@@ -34,6 +35,9 @@ export class PendingAppointmentComponent implements OnInit {
   pendingCount$: Observable<number>;
   approvedCount$: Observable<number>;
   rejectedCount$: Observable<number>;
+
+  currentApps: Appointment[] = [];
+  selectedIds: Set<string> = new Set<string>();
 
   constructor(
     private appointmentService: AppointmentService, 
@@ -85,6 +89,11 @@ export class PendingAppointmentComponent implements OnInit {
       map(([filtered, page]) => {
         const startIndex = (page - 1) * this.pageSize;
         return filtered.slice(startIndex, startIndex + this.pageSize);
+      }),
+      tap(apps => {
+        this.currentApps = apps;
+        // Optionally clear selection when page changes
+        // this.selectedIds.clear(); 
       })
     );
   }
@@ -107,6 +116,7 @@ export class PendingAppointmentComponent implements OnInit {
     this.pageSubject.next(1);
     this.viewFilter = filter;
     this.viewFilterSubject.next(filter);
+    this.selectedIds.clear();
   }
 
   get totalPages(): number {
@@ -135,6 +145,93 @@ export class PendingAppointmentComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       if (params['view'] === 'history') {
         this.onViewFilterChange('history');
+      }
+    });
+  }
+
+  toggleSelection(id: string) {
+    if (this.selectedIds.has(id)) {
+      this.selectedIds.delete(id);
+    } else {
+      this.selectedIds.add(id);
+    }
+  }
+
+  get isAllSelected(): boolean {
+    return this.currentApps.length > 0 && this.currentApps.every(app => this.selectedIds.has(app.id));
+  }
+
+  toggleAll(event: any) {
+    const isChecked = event.target.checked;
+    if (isChecked) {
+      this.currentApps.forEach(app => this.selectedIds.add(app.id));
+    } else {
+      this.currentApps.forEach(app => this.selectedIds.delete(app.id));
+    }
+  }
+
+  bulkApprove() {
+    if (this.selectedIds.size === 0) return;
+    Swal.fire({
+      title: `Approve ${this.selectedIds.size} Requests?`,
+      text: 'Move these requests to the management database?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#0080a0',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, approve them!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.selectedIds.forEach(id => {
+          this.appointmentService.getAppointmentById(id).pipe(take(1)).subscribe(app => {
+            if (app) {
+              this.appointmentService.updateAppointmentStatus(id, 'Pending');
+              this.appointmentService.markAsReviewed(id);
+              this.notificationService.notifyAppointmentStatus(app.guardianContact, app.babyName, 'Approved');
+            }
+          });
+        });
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Approved!',
+          text: `${this.selectedIds.size} requests have been approved.`,
+          confirmButtonColor: '#0080a0'
+        });
+        this.selectedIds.clear();
+      }
+    });
+  }
+
+  bulkReject() {
+    if (this.selectedIds.size === 0) return;
+    Swal.fire({
+      title: `Reject ${this.selectedIds.size} Requests?`,
+      text: 'Move these requests to the records as rejected?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#0080a0',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, reject them!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.selectedIds.forEach(id => {
+          this.appointmentService.getAppointmentById(id).pipe(take(1)).subscribe(app => {
+            if (app) {
+              this.appointmentService.updateAppointmentStatus(id, 'Rejected');
+              this.appointmentService.markAsReviewed(id);
+              this.notificationService.notifyAppointmentStatus(app.guardianContact, app.babyName, 'Rejected');
+            }
+          });
+        });
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Rejected!',
+          text: `${this.selectedIds.size} requests have been rejected.`,
+          confirmButtonColor: '#0080a0'
+        });
+        this.selectedIds.clear();
       }
     });
   }

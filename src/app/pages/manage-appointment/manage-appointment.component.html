@@ -35,9 +35,23 @@
 
     <!-- Table Section -->
     <section class="activity-section">
-      <div class="section-header">
-        <h2>Immunization</h2>
-        <span class="badge" *ngIf="totalItems > 0">{{ totalItems }} records found</span>
+      <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2>Immunization</h2>
+          <span class="badge" *ngIf="totalItems > 0">{{ totalItems }} records found</span>
+        </div>
+        
+        <div *ngIf="selectedIds.size > 0" class="bulk-actions" style="display: flex; gap: 0.5rem;">
+          <button *ngIf="hasSelectedNotPending" class="approve-btn" style="background-color: #6b7280; color: white;" (click)="bulkSetStatus('Pending')">
+            <span class="icon">⏳</span> Set Pending
+          </button>
+          <button *ngIf="hasSelectedPending" class="approve-btn" style="background-color: #f59e0b; color: white;" (click)="bulkSetStatus('First dose')">
+            <span class="icon">💉</span> Set First Dose
+          </button>
+          <button *ngIf="hasSelectedFirstDose" class="approve-btn" style="background-color: #10b981; color: white;" (click)="bulkSetStatus('Second dose')">
+            <span class="icon">💉</span> Set Second Dose
+          </button>
+        </div>
       </div>
 
       <div class="table-container card">
@@ -49,6 +63,9 @@
         <table *ngIf="(paginatedAppointments$ | async)?.length">
           <thead>
             <tr>
+              <th style="width: 40px; text-align: center;">
+                <input type="checkbox" [checked]="isAllSelected" (change)="toggleAll($event)">
+              </th>
               <th>Baby Name</th>
               <th>Vaccine</th>
               <th>Clinic</th>
@@ -59,7 +76,10 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let app of paginatedAppointments$ | async">
+            <tr *ngFor="let app of paginatedAppointments$ | async" [class.selected-row]="selectedIds.has(app.id)">
+              <td style="text-align: center;">
+                <input type="checkbox" [checked]="selectedIds.has(app.id)" (change)="toggleSelection(app.id)">
+              </td>
               <td><strong>{{ app.babyName }}</strong></td>
               <td><span class="badge">{{ app.vaccineRequested }}</span></td>
               <td>{{ app.preferredClinic }}</td>

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { map, startWith, tap } from 'rxjs/operators';
 import { AppointmentService, Appointment } from '../../services/appointment.service';
 import { NotificationService } from '../../services/notification.service';
 import Swal from 'sweetalert2';
@@ -27,6 +27,9 @@ export class ManageAppointmentComponent implements OnInit {
   currentPage: number = 1;
   pageSize: number = 5;
   totalItems: number = 0;
+
+  currentApps: Appointment[] = [];
+  selectedIds: Set<string> = new Set<string>();
 
   constructor(
     private appointmentService: AppointmentService,
@@ -64,6 +67,9 @@ export class ManageAppointmentComponent implements OnInit {
       map(([filtered, page]) => {
         const startIndex = (page - 1) * this.pageSize;
         return filtered.slice(startIndex, startIndex + this.pageSize);
+      }),
+      tap(apps => {
+        this.currentApps = apps;
       })
     );
   }
@@ -78,6 +84,7 @@ export class ManageAppointmentComponent implements OnInit {
     this.currentPage = 1;
     this.pageSubject.next(1);
     this.statusSubject.next(value);
+    this.selectedIds.clear();
   }
 
   get totalPages(): number {
@@ -103,6 +110,66 @@ export class ManageAppointmentComponent implements OnInit {
   }
 
   ngOnInit(): void {}
+
+  toggleSelection(id: string) {
+    if (this.selectedIds.has(id)) {
+      this.selectedIds.delete(id);
+    } else {
+      this.selectedIds.add(id);
+    }
+  }
+
+  get isAllSelected(): boolean {
+    return this.currentApps.length > 0 && this.currentApps.every(app => this.selectedIds.has(app.id));
+  }
+
+  get hasSelectedPending(): boolean {
+    return this.currentApps.some(app => this.selectedIds.has(app.id) && app.status === 'Pending');
+  }
+
+  get hasSelectedFirstDose(): boolean {
+    return this.currentApps.some(app => this.selectedIds.has(app.id) && app.status === 'First dose');
+  }
+
+  get hasSelectedNotPending(): boolean {
+    return this.currentApps.some(app => this.selectedIds.has(app.id) && app.status !== 'Pending');
+  }
+
+  toggleAll(event: any) {
+    const isChecked = event.target.checked;
+    if (isChecked) {
+      this.currentApps.forEach(app => this.selectedIds.add(app.id));
+    } else {
+      this.currentApps.forEach(app => this.selectedIds.delete(app.id));
+    }
+  }
+
+  bulkSetStatus(status: 'Pending' | 'First dose' | 'Second dose') {
+    if (this.selectedIds.size === 0) return;
+    Swal.fire({
+      title: `Update ${this.selectedIds.size} Records?`,
+      text: `Change the status of selected records to ${status}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#0080a0',
+      cancelButtonColor: '#d33',
+      confirmButtonText: `Yes, set as ${status}!`
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.selectedIds.forEach(id => {
+          this.appointmentService.updateAppointmentStatus(id, status);
+        });
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Status Updated!',
+          text: `${this.selectedIds.size} records have been updated to ${status}.`,
+          confirmButtonColor: '#0080a0'
+        });
+        this.selectedIds.clear();
+      }
+    });
+  }
 
   getStatusClass(status: string): string {
     return status.toLowerCase().replace(' ', '-');
